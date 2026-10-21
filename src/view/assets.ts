@@ -129,6 +129,9 @@ export class Assets {
     tableSize: number
   ): TableCustomization | undefined {
     if (tableSize === 10) return undefined
+    // Real pool table sizes (7ft and up) keep the standard cloth, so 8-ball
+    // looks the same as 9-ball there; the coloured cloths mark the toy sizes.
+    if (tableSize >= 7 && this.ruletype !== "threecushion") return undefined
     if (tableSize === 6) {
       return Assets.tableCustomizations[`${this.ruletype}6`]
     }

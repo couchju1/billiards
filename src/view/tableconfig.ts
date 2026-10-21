@@ -34,6 +34,10 @@ export class TableConfig {
     if (Number.isNaN(mu)) {
       return undefined
     }
+    return TableConfig.clampMu(mu)
+  }
+
+  static clampMu(mu: number): number {
     return Math.min(0.02, Math.max(0.004, mu))
   }
 

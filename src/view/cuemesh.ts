@@ -169,10 +169,11 @@ export class CueMesh {
         depthWrite: false,
       })
     )
-    const lineLength = R * 8
-    const lineGeometry = new PlaneGeometry(lineLength, R * 0.12)
+    // Unit length along +x from its origin; Cue scales it to the length the
+    // aim-help level asks for.
+    const lineGeometry = new PlaneGeometry(1, R * 0.12)
     lineGeometry.applyMatrix4(
-      new Matrix4().identity().makeTranslation(R + lineLength / 2, 0, 0)
+      new Matrix4().identity().makeTranslation(0.5, 0, 0)
     )
     const line = new Mesh(
       lineGeometry,

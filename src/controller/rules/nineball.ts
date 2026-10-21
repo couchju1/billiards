@@ -30,9 +30,15 @@ export class NineBall implements Rules {
   currentBreak = 0
   previousBreak = 0
   rulename = "nineball"
+  /** The ball that wins the game when potted legally. */
+  protected readonly gameBallLabel: number = 9
 
   constructor(container: Container) {
     this.container = container
+  }
+
+  gameBall(): Ball {
+    return this.container.table.balls[this.gameBallLabel]
   }
 
   startTurn(): void {
@@ -81,7 +87,7 @@ export class NineBall implements Rules {
   }
 
   update(outcome: Outcome[]): Controller {
-    const reason = NineBall.foulReason(this.container.table, outcome)
+    const reason = this.foulReason(outcome)
 
     if (reason) {
       return this.handleFoul(outcome, reason)
@@ -104,11 +110,11 @@ export class NineBall implements Rules {
     })
     this.startTurn()
     const pots = Outcome.pots(outcome)
-    const nineBallPotted = pots.includes(this.container.table.balls[9])
+    const gameBallPotted = pots.includes(this.gameBall())
     const cueball = this.container.table.cueball
 
-    if (nineBallPotted) {
-      this.respotAndBroadcastNineBall(outcome)
+    if (gameBallPotted) {
+      this.respotAndBroadcastGameBall(outcome)
     }
 
     const startPos = cueball.onTable() ? cueball.pos.clone() : this.placeBall()
@@ -163,9 +169,8 @@ export class NineBall implements Rules {
   }
 
   isEndOfGame(outcome: Outcome[]): boolean {
-    const nineBall = this.container.table.balls[9]
-    const nineBallPotted = Outcome.pots(outcome).includes(nineBall)
-    return nineBallPotted && !this.isFoul(outcome)
+    const gameBallPotted = Outcome.pots(outcome).includes(this.gameBall())
+    return gameBallPotted && !this.isFoul(outcome)
   }
 
   otherPlayersCueBall(): Ball {
@@ -182,11 +187,11 @@ export class NineBall implements Rules {
   }
 
   protected isFoul(outcome: Outcome[]): boolean {
-    return NineBall.foulReason(this.container.table, outcome) !== null
+    return this.foulReason(outcome) !== null
   }
 
   foulReason(outcome: Outcome[]): string | null {
-    return NineBall.foulReason(this.container.table, outcome)
+    return NineBall.foulReason(this.container.table, outcome, this.gameBall())
   }
 
   getAmountScored(outcome: Outcome[]): number {
@@ -194,15 +199,19 @@ export class NineBall implements Rules {
   }
 
   respot(outcome: Outcome[]): Ball[] {
-    const nineBall = this.container.table.balls[9]
-    if (nineBall && Outcome.pots(outcome).includes(nineBall)) {
-      Respot.nineBall(this.container.table)
-      return [nineBall]
+    const gameBall = this.gameBall()
+    if (gameBall && Outcome.pots(outcome).includes(gameBall)) {
+      Respot.footSpot(gameBall, this.container.table)
+      return [gameBall]
     }
     return []
   }
 
-  public static foulReason(table: Table, outcome: Outcome[]): string | null {
+  public static foulReason(
+    table: Table,
+    outcome: Outcome[],
+    gameBall: Ball = table.balls[9]
+  ): string | null {
     const cueball = table.cueball
 
     // 1. Cue ball potted
@@ -223,8 +232,8 @@ export class NineBall implements Rules {
     if (firstCollision.ballB !== lowestBall) {
       if (Session.isPracticeMode()) {
         if (
-          firstCollision.ballB === table.balls[9] &&
-          NineBall.hasOtherObjectBalls(table)
+          firstCollision.ballB === gameBall &&
+          NineBall.hasOtherObjectBalls(table, gameBall)
         ) {
           return "Wrong ball hit first"
         }
@@ -261,21 +270,21 @@ export class NineBall implements Rules {
     return all[0]
   }
 
-  private static hasOtherObjectBalls(table: Table): boolean {
+  private static hasOtherObjectBalls(table: Table, gameBall: Ball): boolean {
     return table.balls.some(
-      (b) => b !== table.cueball && b !== table.balls[9] && b.onTable()
+      (b) => b !== table.cueball && b !== gameBall && b.onTable()
     )
   }
 
-  private respotAndBroadcastNineBall(outcome: Outcome[]) {
+  private respotAndBroadcastGameBall(outcome: Outcome[]) {
     const respotted = this.respot(outcome)
-    const nineBall = respotted[0]
-    if (nineBall) {
-      nineBall.fround()
+    const gameBall = respotted[0]
+    if (gameBall) {
+      gameBall.fround()
       const respotEvent = RerackEvent.fromJson({
-        balls: [nineBall.serialise()],
+        balls: [gameBall.serialise()],
       })
-      console.log("Respot nine ball sending rerack event", respotEvent)
+      console.log("Respot game ball sending rerack event", respotEvent)
       this.container.sendEvent(respotEvent)
     }
   }

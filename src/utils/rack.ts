@@ -101,6 +101,23 @@ export class Rack {
     return diamond
   }
 
+  /** Ten-ball: the first four rows of the triangle on the same apex as the
+   * nine-ball diamond, 1 at the apex and 10 in the middle of the third row. */
+  static tenBall() {
+    const shift = new Vector3(TableGeometry.tableX / 2 - TableGeometry.X / 2, 0)
+    const positions = Rack.trianglePositions()
+      .slice(0, 10)
+      .map((p) => p.add(shift))
+    const middleOfThirdRow = positions.splice(3, 1)[0]
+    positions.push(middleOfThirdRow)
+    const balls: Ball[] = [Rack.cueBall(Rack.spot)]
+    positions.forEach((p, i) => {
+      const label = i + 1
+      balls.push(new Ball(Rack.jitter(p), Rack.BALL_COLORS[label], label))
+    })
+    return balls
+  }
+
   static triangle() {
     const tp = Rack.trianglePositions()
     const triangle: Ball[] = []

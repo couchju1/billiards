@@ -118,6 +118,7 @@ export class Aim extends ControllerBase {
     if (
       (rulename === "eightball" ||
         rulename === "nineball" ||
+        rulename === "tenball" ||
         rulename === "reveal") &&
       isFirstShot(this.container.recorder)
     ) {

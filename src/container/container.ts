@@ -181,6 +181,7 @@ export class Container {
       config.messagingUrl,
       (url) => this.menu.showOverlay(url)
     )
+    this.table.cue.setAimHelp(Cue.aimHelp)
     if (this.freeAim) {
       // "freeaim=true": hide the aim helper (no shot preview line) and apply
       // the "7" aim camera preset; the A toggle is disabled so it stays off.

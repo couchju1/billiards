@@ -25,9 +25,12 @@ export class Respot {
   static nineBall(table: Table) {
     const nineBall = table.balls.find((b) => b.id === 9)
     if (!nineBall) return
+    Respot.footSpot(nineBall, table)
+  }
 
+  static footSpot(ball: Ball, table: Table) {
     const footSpot = new Vector3(TableGeometry.tableX / 2, 0, 0)
-    Respot.respotBehind(footSpot, nineBall, table)
+    Respot.respotBehind(footSpot, ball, table)
   }
 
   static respot(ball: Ball, table: Table) {

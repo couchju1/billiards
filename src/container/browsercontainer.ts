@@ -29,6 +29,7 @@ import { applyPhysicsParams } from "../utils/physicsparams"
 import { ResumeStore } from "../utils/resumestore"
 import { ResumeHandler } from "./resumehandler"
 import { t } from "../utils/i18n"
+import { listenForEmbedSettings } from "../utils/embedsettings"
 
 /**
  * Integrate game container into HTML page
@@ -93,7 +94,7 @@ export class BrowserContainer {
     this.botName = params.get("bot") ?? ""
     this.practiceMode = params.has("practice")
       ? params.get("practice") !== "false"
-      : this.ruletype !== "nineball"
+      : this.ruletype !== "nineball" && this.ruletype !== "tenball"
     this.drillMode = params.has("drill")
     this.analysisMode = params.has("analysis")
     this.examMode = params.has("exam")
@@ -173,6 +174,7 @@ export class BrowserContainer {
   }
 
   start() {
+    listenForEmbedSettings(() => this.container?.table?.cue)
     // If replay state embeds a non-default tableSize or an image URL and the
     // URL doesn't have them yet, add them and redirect so that all subsystems
     // see the correct values from the start.

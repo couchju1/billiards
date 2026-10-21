@@ -1,4 +1,5 @@
 import { NineBall } from "./nineball"
+import { TenBall } from "./tenball"
 import { EightBall } from "./eightball"
 import { Rules } from "./rules"
 import { Snooker } from "./snooker"
@@ -22,6 +23,8 @@ export class RuleFactory {
         return new Reveal(container)
       case "snooker":
         return new Snooker(container)
+      case "tenball":
+        return new TenBall(container)
       default:
         return new NineBall(container)
     }

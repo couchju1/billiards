@@ -12,6 +12,16 @@ import { maxPower, offCenterLimit, R } from "../model/physics/constants"
 import { cueIntersectsAnything } from "../utils/cueintersect"
 import { id } from "../utils/dom"
 
+/**
+ * How much aiming help to show. Beginner draws the object ball's path out to
+ * the rail, advanced a short stub, and pro shows no aim helper at all.
+ */
+export type AimHelp = "beginner" | "advanced" | "pro"
+
+export function isAimHelp(value: unknown): value is AimHelp {
+  return value === "beginner" || value === "advanced" || value === "pro"
+}
+
 export class Cue {
   mesh: Object3D
   tiltMesh: Object3D
@@ -60,6 +70,7 @@ export class Cue {
   private readonly tempVec2 = new Vector3()
   private readonly tempVec3 = new Vector3()
   private readonly ghostVec = new Vector3()
+  private readonly ghostDir = new Vector3()
   hitAnimationWeight: number = 0
   /** Non-zero (cue placed at maxHitLift * R) while the struck ball
    * runs back into the cue tip. Visual only: aim.elevation, the tilt slider,
@@ -178,8 +189,38 @@ export class Cue {
       target.copy(p).sub(cueball.pos).applyAxisAngle(up, -this.aim.angle)
     const ghost = toLocal(contact.ghost, this.ghostMesh.position)
     const object = toLocal(contact.ball.pos, this.ghostVec)
-    this.ghostLine.position.set(object.x, object.y, -R * 0.99)
-    this.ghostLine.rotation.z = atan2(object.y - ghost.y, object.x - ghost.x)
+    const angle = atan2(object.y - ghost.y, object.x - ghost.x)
+    // The line starts at the object ball's far edge.
+    this.ghostLine.position.set(
+      object.x + R * Math.cos(angle),
+      object.y + R * Math.sin(angle),
+      -R * 0.99
+    )
+    this.ghostLine.rotation.z = angle
+    const travel = unitAtAngle(angle + this.aim.angle, this.ghostDir)
+    this.ghostLine.scale.x =
+      Cue.aimHelp === "beginner"
+        ? Math.max(Cue.distanceToRail(contact.ball.pos, travel) - R, R)
+        : Cue.shortLineLength
+  }
+
+  static readonly shortLineLength = R * 8
+
+  /** How far a ball centre at `from` can travel along `dir` before it
+   * touches a cushion. */
+  static distanceToRail(from: Vector3, dir: Vector3): number {
+    const along = (pos: number, d: number, limit: number) => {
+      if (d > 0) return (limit - pos) / d
+      if (d < 0) return (-limit - pos) / d
+      return Infinity
+    }
+    return Math.max(
+      Math.min(
+        along(from.x, dir.x, TableGeometry.tableX),
+        along(from.y, dir.y, TableGeometry.tableY)
+      ),
+      0
+    )
   }
 
   hit(ball: Ball) {
@@ -477,6 +518,27 @@ export class Cue {
   static readonly hitLiftReturn = 1
 
   static helperEnabled = true
+  /** Seeded from ?aid=; the framing page may change it later. */
+  static aimHelp: AimHelp = Cue.aimHelpFromUrl()
+
+  static aimHelpFromUrl(): AimHelp {
+    const aid = new URLSearchParams(globalThis.location?.search ?? "").get(
+      "aid"
+    )
+    return isAimHelp(aid) ? aid : "advanced"
+  }
+
+  /** Pro turns the whole helper off (tube, ghost ball and line); the A key
+   * still toggles it, as at any level. */
+  setAimHelp(level: AimHelp) {
+    Cue.aimHelp = level
+    Cue.helperEnabled = level !== "pro"
+    if (this.helperMesh) {
+      const aiming = !!this.aimInputs && !this.aimInputs.isDisabled()
+      this.helperMesh.visible = Cue.helperEnabled && aiming
+    }
+    this.aimInputs?.showOverlap()
+  }
 
   showHelper(b) {
     if (this.helperMesh) this.helperMesh.visible = b && Cue.helperEnabled
