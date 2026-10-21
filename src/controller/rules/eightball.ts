@@ -116,6 +116,18 @@ export class EightBall implements Rules {
     return table.balls.find((b) => b.label === 8 && b.onTable())
   }
 
+  legalTargets(): Ball[] {
+    const type = Session.getInstance().p1type
+    const balls = this.container.table.balls.filter(
+      (b) => b !== this.cueball && b.onTable()
+    )
+    if (type === 0) {
+      return balls.filter((b) => b.label !== 8)
+    }
+    const myGroup = balls.filter((b) => this.isMyType(b, type))
+    return myGroup.length > 0 ? myGroup : balls.filter((b) => b.label === 8)
+  }
+
   private isMyType(ball: Ball, type = Session.getInstance().p1type): boolean {
     if (type === 1) {
       return (ball.label || 0) >= 1 && (ball.label || 0) <= 7

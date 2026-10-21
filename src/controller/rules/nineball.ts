@@ -52,6 +52,11 @@ export class NineBall implements Rules {
       .sort((a, b) => (a.label || 0) - (b.label || 0))[0]
   }
 
+  legalTargets(): Ball[] {
+    const lowest = this.nextCandidateBall()
+    return lowest ? [lowest] : []
+  }
+
   placeBall(target?: Vector3): Vector3 {
     const baulkline = ((-R * 11) / 0.5) * (TableConfig.tableSizeFromUrl() / 10)
     if (target) {

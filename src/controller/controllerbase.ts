@@ -15,8 +15,8 @@ const flipX = new URLSearchParams(globalThis.location?.search).has("flip")
 const aimTap = MathUtils.degToRad(0.05)
 const aimRepeatDelay = 250
 const aimRampEnd = 700
-const aimSlow = MathUtils.degToRad(6) / 1000
-const aimFast = MathUtils.degToRad(40) / 1000
+const aimSlow = MathUtils.degToRad(10) / 1000
+const aimFast = MathUtils.degToRad(80) / 1000
 const aimFine = MathUtils.degToRad(1) / 1000
 
 /**
@@ -169,7 +169,7 @@ export abstract class ControllerBase extends Controller {
         this.container.menu.toggleHelpOverlay()
         return true
       case "movementXUp":
-        cue.rotateAim((flipX ? -delta : delta) * 0.6, this.container.table)
+        cue.rotateAim((flipX ? -delta : delta) * 1.2, this.container.table)
         return true
       case "movementYUp":
         if (!cue.aimInputs?.isDisabled()) {

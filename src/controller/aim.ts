@@ -6,6 +6,8 @@ import { Replay } from "./replay"
 import { gameOverButtons } from "../utils/gameover"
 import { isFirstShot } from "../utils/utils"
 import { Camera } from "../view/camera"
+import { Cue } from "../view/cue"
+import { planShot } from "../utils/shotplanner"
 
 /**
  * Aim using input events.
@@ -45,16 +47,30 @@ export class Aim extends ControllerBase {
     table.cue.aim.i = table.balls.indexOf(table.cueball)
     table.cue.moveTo(table.cueball.pos)
     if (!customShot) {
-      table.cue.aimAtNext(
-        table.cueball,
-        this.container.rules.nextCandidateBall()
-      )
+      this.aimAtNextShot()
       table.cue.aim.elevation = 0
     }
     table.cue.avoidCueTouchingOtherBall(table)
     this.container.view.camera.aimzLerp = Camera.aimzDefaultLerp
     this.container.view.camera.suggestMode(this.container.view.camera.aimView)
     table.cue.updateAimInput()
+  }
+
+  /** Beginner aim help lines up the best makeable pot, power included;
+   * otherwise, or when nothing is makeable, aim at the next ball to play. */
+  private aimAtNextShot() {
+    const table = this.container.table
+    const rules = this.container.rules
+    const plan =
+      Cue.aimHelp === "beginner" && rules.legalTargets
+        ? planShot(table, rules.legalTargets())
+        : undefined
+    if (plan) {
+      table.cue.aim.angle = plan.angle
+      table.cue.aim.power = Math.fround(plan.power)
+      return
+    }
+    table.cue.aimAtNext(table.cueball, rules.nextCandidateBall())
   }
 
   override onFirst() {

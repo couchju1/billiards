@@ -10,15 +10,15 @@ describe("aimTravel", () => {
     expect(deg(aimTravel(200, false))).to.be.closeTo(0.05, 1e-9)
   })
 
-  it("starts slow and reaches about 40 degrees per second by 700ms", () => {
+  it("starts slow and reaches about 80 degrees per second by 700ms", () => {
     const rate = (held: number) =>
       deg(aimTravel(held + 1, false) - aimTravel(held, false)) * 1000
-    expect(rate(260)).to.be.closeTo(6, 0.5)
-    expect(rate(800)).to.be.closeTo(40, 0.1)
+    expect(rate(260)).to.be.closeTo(10, 0.5)
+    expect(rate(800)).to.be.closeTo(80, 0.1)
   })
 
   it("turns a long way in about three seconds", () => {
-    expect(deg(aimTravel(3000, false))).to.be.greaterThan(90)
+    expect(deg(aimTravel(3000, false))).to.be.greaterThan(180)
   })
 
   it("turns at about 1 degree per second with Control", () => {

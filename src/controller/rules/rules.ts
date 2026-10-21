@@ -21,6 +21,9 @@ export interface Rules {
   allowsPlaceBall(): boolean
   placeBall(target?: Vector3): Vector3
   nextCandidateBall(p1type?: number): Ball | undefined
+  /** Every ball the player may legally hit first, for the beginner shot
+   * planner. Rules without one get no planned shots. */
+  legalTargets?(): Ball[]
   startTurn(): void
   handleGameEnd(isWinner: boolean, endSubtext?: string): Controller
   foulReason(outcome: Outcome[], type?: number): string | null
