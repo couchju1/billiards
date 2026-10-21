@@ -1,4 +1,5 @@
 import { getLobbyUrl } from "../network/client/constants"
+import { OFFLINE } from "./offline"
 
 /**
  * Builds a notification footer button. The label stays an English source
@@ -22,7 +23,8 @@ function clubIdFromUrl(): string | null {
 }
 
 export const gameOverButtons = {
-  lobby: button("lobby", "Back to Lobby"),
+  // An offline build has no lobby to go back to.
+  lobby: OFFLINE ? "" : button("lobby", "Back to Lobby"),
   newGame: button("reload", "New Game"),
   replay: button("replay", "Replay"),
 

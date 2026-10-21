@@ -178,4 +178,22 @@ describe("gameOverButtons", () => {
       expect(html).toContain("raceTo=5")
     })
   })
+
+  describe("offline build", () => {
+    const original = process.env.OFFLINE
+
+    afterEach(() => {
+      process.env.OFFLINE = original
+    })
+
+    it("has no lobby button after a single-player game", () => {
+      process.env.OFFLINE = "true"
+      jest.isolateModules(() => {
+        const offline = require("../../src/utils/gameover").gameOverButtons
+        const html = offline.forMode(true)
+        expect(html).toContain('data-notification-action="reload"')
+        expect(html).not.toContain('data-notification-action="lobby"')
+      })
+    })
+  })
 })
