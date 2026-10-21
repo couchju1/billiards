@@ -138,7 +138,16 @@ describe("Cue", () => {
       showOverlap: () => {},
     } as any
     cue.setPower(0.5)
-    expect(cue.aim.power).to.equal(Math.fround(0.5 * maxPower))
+    expect(cue.aim.power).to.equal(Math.fround(maxPower * 0.5 ** 1.7))
+  })
+
+  test("power slider curve keeps full power and inverts", () => {
+    expect(Cue.powerFromSlider(1)).to.equal(maxPower)
+    expect(Cue.powerFromSlider(0.5)).to.be.lessThan(0.35 * maxPower)
+    expect(Cue.sliderFromPower(Cue.powerFromSlider(0.3))).to.be.closeTo(
+      0.3,
+      1e-9
+    )
   })
 
   test("setPower returns early when disabled", () => {

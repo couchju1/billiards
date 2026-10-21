@@ -4,7 +4,7 @@ import { Aim } from "../controller/aim"
 import { DrillReplay } from "../controller/drillreplay"
 import { AimEvent } from "../events/aimevent"
 import { Ball } from "../model/ball"
-import { maxPower } from "../model/physics/constants"
+import { Cue } from "./cue"
 import { previewShot } from "../model/previewshot"
 import {
   BallPos,
@@ -251,7 +251,7 @@ export class AnalysisPanel {
         cue.rotateAim(pick.value - cue.aim.angle, table)
         break
       case "power":
-        cue.setPower(pick.value / maxPower)
+        cue.setPower(Cue.sliderFromPower(pick.value))
         break
       case "elevation":
         cue.setElevation(pick.value)

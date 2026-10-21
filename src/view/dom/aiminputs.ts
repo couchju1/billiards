@@ -7,7 +7,6 @@ import { unitAtAngle } from "../../utils/three-utils"
 import { id } from "../../utils/dom"
 import { TimeoutButton } from "../timeoutbutton"
 import { AngleInput } from "./angleinput"
-import { maxPower } from "../../model/physics/constants"
 import { PlaceBall } from "../../controller/placeball"
 import { t } from "../../utils/i18n"
 import { Cue } from "../cue"
@@ -79,8 +78,9 @@ export class AimInputs {
     this.objectBallOverlap = id("objectBallOverlap")
     this.overlap = new Overlap(this.container.table.balls)
     if (this.cuePowerElement) {
-      this.container.table.cue.aim.power =
-        Number(this.cuePowerElement.value) * maxPower
+      this.container.table.cue.aim.power = Cue.powerFromSlider(
+        Number(this.cuePowerElement.value)
+      )
       this.updatePowerProgress()
     }
     this.updateTiltSlider(this.container.table.cue.aim.elevation)
@@ -248,8 +248,15 @@ export class AimInputs {
   }
 
   showOverlap() {
+    const table = this.container.table
+    if (table.cue) {
+      const dir = unitAtAngle(table.cue.aim.angle)
+      table.cue.updateGhost(
+        table.cueball,
+        this.overlap.getContact(table.cueball, dir)
+      )
+    }
     if (this.objectBallStyle) {
-      const table = this.container.table
       if (table.cue && Cue.helperEnabled && !this.container.freeAim) {
         const dir = unitAtAngle(table.cue.aim.angle)
         const closest = this.overlap.getOverlapOffset(table.cueball, dir)

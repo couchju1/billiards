@@ -3,6 +3,16 @@ import { Mesh, Object3D } from "three"
 export const modelExtentX = 16000
 export const modelExtentY = 9200
 
+/**
+ * Stretch the 10ft pool model to another tableSize. The per-foot values are
+ * the hand-tuned 6ft stretch (-2800, -1350) divided by its 4ft difference;
+ * the stretch moves the rails and pockets linearly, so other sizes follow.
+ */
+export function scalePoolTableModel(scene: Object3D, tableSize: number): void {
+  if (tableSize === 10) return
+  scaleTableModel(scene, (tableSize - 10) * 700, (tableSize - 10) * 337.5)
+}
+
 export function scaleTableModel(
   scene: Object3D,
   stretchX: number,

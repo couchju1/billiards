@@ -15,6 +15,7 @@ import {
   PlaneGeometry,
   RepeatWrapping,
   ShaderMaterial,
+  SphereGeometry,
   SRGBColorSpace,
   Vector3,
 } from "three"
@@ -154,6 +155,37 @@ export class CueMesh {
     }
     group.visible = false
     return group
+  }
+
+  /** Translucent ball at the contact point, plus a short line along the
+   * object ball's path, both drawn in the aim helper's local frame. */
+  static createGhost() {
+    const ghost = new Mesh(
+      new SphereGeometry(R, 24, 16),
+      new MeshBasicMaterial({
+        color: 0xffffff,
+        opacity: 0.3,
+        transparent: true,
+        depthWrite: false,
+      })
+    )
+    const lineLength = R * 8
+    const lineGeometry = new PlaneGeometry(lineLength, R * 0.12)
+    lineGeometry.applyMatrix4(
+      new Matrix4().identity().makeTranslation(R + lineLength / 2, 0, 0)
+    )
+    const line = new Mesh(
+      lineGeometry,
+      new MeshBasicMaterial({
+        color: 0xffffff,
+        opacity: 0.6,
+        transparent: true,
+        depthWrite: false,
+      })
+    )
+    ghost.visible = false
+    line.visible = false
+    return { ghost, line }
   }
 
   static createShadow(length: number) {

@@ -1,16 +1,40 @@
-import { Controller } from "./controller"
+import { Controller, Input } from "./controller"
 import { exportGltf } from "../utils/gltf"
 import { ChatEvent } from "../events/chatevent"
 import { NotificationEvent } from "../events/notificationevent"
 import { ScoreEvent } from "../events/scoreevent"
 import { ConcedeEvent } from "../events/concedeevent"
 import { Outcome } from "../model/outcome"
-import { Vector3 } from "three"
+import { MathUtils, Vector3 } from "three"
 import { Session } from "../network/client/session"
 
 const flipP1type = (t: number) => (t === 1 ? 2 : 1)
 
 const flipX = new URLSearchParams(globalThis.location?.search).has("flip")
+
+const aimTap = MathUtils.degToRad(0.05)
+const aimRepeatDelay = 250
+const aimRampEnd = 700
+const aimSlow = MathUtils.degToRad(6) / 1000
+const aimFast = MathUtils.degToRad(40) / 1000
+const aimFine = MathUtils.degToRad(1) / 1000
+
+/**
+ * Cue rotation (radians) after an arrow key has been held for `held` ms.
+ * A press moves one tiny step and then waits, like key repeat, so a tap stays
+ * barely visible. Holding then turns at aimSlow, easing (smoothstep) up to
+ * aimFast by aimRampEnd; with Control it turns at aimFine throughout.
+ */
+export function aimTravel(held: number, fine: boolean): number {
+  if (held <= 0) return 0
+  const t = held - aimRepeatDelay
+  if (t <= 0) return aimTap
+  if (fine) return aimTap + aimFine * t
+  const ramp = aimRampEnd - aimRepeatDelay
+  const u = Math.min(t / ramp, 1)
+  const extra = ramp * (u ** 3 - u ** 4 / 2) + Math.max(t - ramp, 0)
+  return aimTap + aimSlow * t + (aimFast - aimSlow) * extra
+}
 
 export abstract class ControllerBase extends Controller {
   readonly scale = 0.001
@@ -99,15 +123,21 @@ export abstract class ControllerBase extends Controller {
     this.container.table.cue.showHelper(false)
   }
 
+  aimDelta(input: Input): number {
+    if (!input.hold) return input.t * this.scale
+    const { from, to, fine } = input.hold
+    return aimTravel(to, fine) - aimTravel(from, fine)
+  }
+
   commonKeyHandler(input) {
     const cue = this.container.table.cue
     const delta = input.t * this.scale
     switch (input.key) {
       case "ArrowLeft":
-        cue.rotateAim(-delta, this.container.table)
+        cue.rotateAim(-this.aimDelta(input), this.container.table)
         return true
       case "ArrowRight":
-        cue.rotateAim(delta, this.container.table)
+        cue.rotateAim(this.aimDelta(input), this.container.table)
         return true
       case "ArrowDown":
         cue.adjustSpin(new Vector3(0, -delta), this.container.table)
@@ -139,7 +169,7 @@ export abstract class ControllerBase extends Controller {
         this.container.menu.toggleHelpOverlay()
         return true
       case "movementXUp":
-        cue.rotateAim((flipX ? -delta : delta) * 2, this.container.table)
+        cue.rotateAim((flipX ? -delta : delta) * 0.6, this.container.table)
         return true
       case "movementYUp":
         if (!cue.aimInputs?.isDisabled()) {

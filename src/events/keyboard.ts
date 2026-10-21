@@ -9,6 +9,8 @@ import interact from "interactjs"
 export class Keyboard {
   pressed = {}
   released = {}
+  heldSince = {}
+  tapped = {}
   private readonly disabled: boolean
   /** Early-return guard for mousetouch; set by Container to suppress
    * aim-rotate / camera-height drags while the CueHit gesture is active. */
@@ -23,12 +25,19 @@ export class Keyboard {
     const result: Input[] = []
 
     keys.forEach((k) => {
-      const t = performance.now() - this.pressed[k]
-      result.push(new Input(control ? t / 3 : t, shift ? "Shift" + k : k))
+      const now = performance.now()
+      const t = now - this.pressed[k]
+      result.push(this.input(k, t, now - this.heldSince[k], shift, control))
       if (k != "Space") {
-        this.pressed[k] = performance.now()
+        this.pressed[k] = now
       }
     })
+
+    Object.keys(this.tapped).forEach((k) => {
+      const t = this.tapped[k]
+      result.push(this.input(k, t, t, shift, control))
+    })
+    this.tapped = {}
 
     Object.keys(this.released).forEach((key) =>
       result.push(new Input(this.released[key], key + "Up"))
@@ -36,6 +45,14 @@ export class Keyboard {
 
     this.released = {}
     return result
+  }
+
+  private input(k, t, held, shift, control) {
+    return new Input(control ? t / 3 : t, shift ? "Shift" + k : k, {
+      from: held - t,
+      to: held,
+      fine: control,
+    })
   }
 
   constructor(element: HTMLCanvasElement, opts: { disabled?: boolean } = {}) {
@@ -55,6 +72,7 @@ export class Keyboard {
   keydown = (e) => {
     if (this.disabled || this.chatFocused()) return
     this.pressed[e.code] ??= performance.now()
+    this.heldSince[e.code] ??= this.pressed[e.code]
     e.stopImmediatePropagation()
     if (e.key !== "F12") {
       e.preventDefault()
@@ -64,7 +82,16 @@ export class Keyboard {
   keyup = (e) => {
     if (this.disabled || this.chatFocused()) return
     this.released[e.code] = performance.now() - this.pressed[e.code]
+    // Pressed and released between two frames: still deliver it once.
+    if (
+      e.code !== "Space" &&
+      this.pressed[e.code] !== undefined &&
+      this.pressed[e.code] === this.heldSince[e.code]
+    ) {
+      this.tapped[e.code] = this.released[e.code]
+    }
     delete this.pressed[e.code]
+    delete this.heldSince[e.code]
     e.stopImmediatePropagation()
     if (e.key !== "F12") {
       e.preventDefault()
@@ -93,6 +120,8 @@ export class Keyboard {
     element.addEventListener("blur", () => {
       this.pressed = {}
       this.released = {}
+      this.heldSince = {}
+      this.tapped = {}
     })
     element.addEventListener("dragstart", (e) => e.preventDefault())
     element.focus()

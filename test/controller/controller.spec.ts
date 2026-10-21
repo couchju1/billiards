@@ -237,7 +237,10 @@ describe("Controller", () => {
     chaiExpect(visualSpy.mock.calls).to.not.be.empty
     const powerArgs = powerSpy.mock.calls[powerSpy.mock.calls.length - 1]
     const visualArgs = visualSpy.mock.calls[visualSpy.mock.calls.length - 1]
-    chaiExpect(powerArgs[0]).to.be.approximately(0.4, 0.0001)
+    chaiExpect(powerArgs[0]).to.be.approximately(
+      Cue.sliderFromPower(maxPower * 0.4),
+      0.0001
+    )
     chaiExpect(visualArgs[0]).to.be.approximately(0.1, 0.0001)
     chaiExpect(visualArgs[1]).to.be.approximately(-0.15, 0.0001)
     done()
@@ -274,7 +277,10 @@ describe("Controller", () => {
     chaiExpect(visualSpy.mock.calls).to.not.be.empty
     const powerArgs = powerSpy.mock.calls[powerSpy.mock.calls.length - 1]
     const visualArgs = visualSpy.mock.calls[visualSpy.mock.calls.length - 1]
-    chaiExpect(powerArgs[0]).to.be.approximately(0.25, 0.0001)
+    chaiExpect(powerArgs[0]).to.be.approximately(
+      Cue.sliderFromPower(maxPower * 0.25),
+      0.0001
+    )
     chaiExpect(visualArgs[0]).to.be.approximately(0.05, 0.0001)
     chaiExpect(visualArgs[1]).to.be.approximately(-0.2, 0.0001)
     done()

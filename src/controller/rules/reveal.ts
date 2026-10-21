@@ -19,7 +19,7 @@ import { ScoreEvent } from "../../events/scoreevent"
 import { roundVec } from "../../utils/three-utils"
 import { Respot } from "../../utils/respot"
 import { t } from "../../utils/i18n"
-import { scaleTableModel } from "../../utils/table-scaler"
+import { scalePoolTableModel } from "../../utils/table-scaler"
 import { ReplayEncoder } from "../../utils/replay-encoder"
 
 /**
@@ -47,10 +47,7 @@ export class Reveal implements Rules {
   }
 
   scaleTableModel(scene: any): void {
-    const tableSize = TableConfig.tableSizeFromUrl()
-    if (tableSize === 6) {
-      scaleTableModel(scene, -2800, -1350)
-    }
+    scalePoolTableModel(scene, TableConfig.tableSizeFromUrl())
   }
 
   table(): Table {

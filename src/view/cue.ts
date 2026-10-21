@@ -1,6 +1,6 @@
 import { TableGeometry } from "../view/tablegeometry"
 import { Table } from "../model/table"
-import { upCross, unitAtAngle, norm, roundVec } from "../utils/three-utils"
+import { upCross, unitAtAngle, norm, roundVec, up } from "../utils/three-utils"
 import { atan2, sin } from "../utils/utils"
 import { AimEvent } from "../events/aimevent"
 import { AimInputs } from "./dom/aiminputs"
@@ -17,6 +17,8 @@ export class Cue {
   tiltMesh: Object3D
   cueBody: Object3D
   helperMesh: Mesh
+  ghostMesh: Mesh
+  ghostLine: Mesh
   placerMesh: Object3D
   shadowMesh: Mesh
   /** Scene-mounted group parenting the two per-player mesh sets and the
@@ -57,6 +59,7 @@ export class Cue {
   private readonly tempVec = new Vector3()
   private readonly tempVec2 = new Vector3()
   private readonly tempVec3 = new Vector3()
+  private readonly ghostVec = new Vector3()
   hitAnimationWeight: number = 0
   /** Non-zero (cue placed at maxHitLift * R) while the struck ball
    * runs back into the cue tip. Visual only: aim.elevation, the tilt slider,
@@ -93,6 +96,10 @@ export class Cue {
       this.p1.add(cue.mesh)
       this.p2.add(opponentCue.mesh)
       this.helperMesh = CueMesh.createHelper()
+      const { ghost, line } = CueMesh.createGhost()
+      this.ghostMesh = ghost
+      this.ghostLine = line
+      this.helperMesh.add(ghost, line)
       this.placerMesh = CueMesh.createPlacer()
       this.shadowMesh = CueMesh.createShadow(this.length)
       this.root = new Group()
@@ -136,8 +143,43 @@ export class Cue {
     if (!this.aimInputs || this.aimInputs.isDisabled()) {
       return
     }
-    this.aim.power = Math.fround(value * maxPower)
+    this.aim.power = Math.fround(Cue.powerFromSlider(value))
     this.updateAimInput()
+  }
+
+  /** Slider travel is curved so the lower half covers soft shots finely;
+   * full travel is still maxPower. */
+  static readonly powerExponent = 1.7
+
+  static powerFromSlider(value: number): number {
+    return maxPower * Math.pow(value, Cue.powerExponent)
+  }
+
+  static sliderFromPower(power: number): number {
+    return Math.pow(power / maxPower, 1 / Cue.powerExponent)
+  }
+
+  /**
+   * Place the ghost ball and object-ball line for the current aim. They are
+   * children of helperMesh, so the helper toggle shows and hides them too;
+   * positions are in the cue root's frame (origin at the cue ball, x along
+   * the aim).
+   */
+  updateGhost(cueball: Ball, contact?: { ball: Ball; ghost: Vector3 }) {
+    if (!this.ghostMesh) {
+      return
+    }
+    this.ghostMesh.visible = contact !== undefined
+    this.ghostLine.visible = contact !== undefined
+    if (!contact) {
+      return
+    }
+    const toLocal = (p: Vector3, target: Vector3) =>
+      target.copy(p).sub(cueball.pos).applyAxisAngle(up, -this.aim.angle)
+    const ghost = toLocal(contact.ghost, this.ghostMesh.position)
+    const object = toLocal(contact.ball.pos, this.ghostVec)
+    this.ghostLine.position.set(object.x, object.y, -R * 0.99)
+    this.ghostLine.rotation.z = atan2(object.y - ghost.y, object.x - ghost.x)
   }
 
   hit(ball: Ball) {
@@ -227,7 +269,7 @@ export class Cue {
 
   updateAimInput() {
     this.aimInputs?.updateVisualState(this.aim.offset.x, this.aim.offset.y)
-    this.aimInputs?.updatePowerSlider(this.aim.power / maxPower)
+    this.aimInputs?.updatePowerSlider(Cue.sliderFromPower(this.aim.power))
     this.aimInputs?.updateTiltSlider?.(this.aim.elevation)
     this.aimInputs?.showOverlap()
   }

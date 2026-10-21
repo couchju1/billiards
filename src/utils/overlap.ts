@@ -39,6 +39,22 @@ export class Overlap {
     )
   }
 
+  /** The first ball in the path and where the cue ball's centre is when it
+   * touches it (the ghost ball). */
+  getContact(cueball: Ball, direction: Vector3) {
+    const closest = this.getFirst(cueball, direction)
+    if (!closest) {
+      return undefined
+    }
+    const back = Math.sqrt(Math.max(4 * R * R - closest.perpendicular ** 2, 0))
+    const ghost = direction
+      .clone()
+      .normalize()
+      .multiplyScalar(closest.distance - back)
+      .add(cueball.pos)
+    return { ball: closest.ball, ghost }
+  }
+
   getOverlapOffset(cueball: Ball, direction: Vector3) {
     const closest = this.getFirst(cueball, direction)
     if (!closest) {

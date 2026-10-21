@@ -1,6 +1,6 @@
 import { TableGeometry } from "./tablegeometry"
 import { PocketGeometry } from "./pocketgeometry"
-import { R } from "../model/physics/constants"
+import { R, setmu } from "../model/physics/constants"
 
 /**
  * Single coordinator for table + pocket geometry configuration.
@@ -18,6 +18,23 @@ export class TableConfig {
   static apply(ruleType: string, tableSize: number = 10): void {
     TableGeometry.configureForRule(ruleType, tableSize)
     PocketGeometry.scaleToRadius(R)
+    const mu = TableConfig.muFromUrl()
+    if (mu !== undefined) {
+      setmu(mu)
+    }
+  }
+
+  /**
+   * Read the `mu` URL query parameter (rolling friction), clamped to
+   * [0.004, 0.02]. Undefined when absent or not a number.
+   */
+  static muFromUrl(): number | undefined {
+    const urlParams = new URLSearchParams(globalThis.location?.search ?? "")
+    const mu = Number.parseFloat(urlParams.get("mu") ?? "")
+    if (Number.isNaN(mu)) {
+      return undefined
+    }
+    return Math.min(0.02, Math.max(0.004, mu))
   }
 
   /**

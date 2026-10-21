@@ -10,6 +10,7 @@ import { initDom } from "../view/dom"
 import { Session } from "../../src/network/client/session"
 import { MessageRelay } from "../../src/network/client/messagerelay"
 import { maxPower } from "../../src/model/physics/constants"
+import { Cue } from "../../src/view/cue"
 
 initDom()
 
@@ -92,7 +93,10 @@ describe("Spectate Controller", () => {
     expect(visualSpy.mock.calls).to.not.be.empty
     const powerArgs = powerSpy.mock.calls[powerSpy.mock.calls.length - 1]
     const visualArgs = visualSpy.mock.calls[visualSpy.mock.calls.length - 1]
-    expect(powerArgs[0]).to.be.approximately(0.25, 0.0001)
+    expect(powerArgs[0]).to.be.approximately(
+      Cue.sliderFromPower(maxPower * 0.25),
+      0.0001
+    )
     expect(visualArgs[0]).to.be.approximately(0.05, 0.0001)
     expect(visualArgs[1]).to.be.approximately(-0.2, 0.0001)
   })

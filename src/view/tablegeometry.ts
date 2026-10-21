@@ -1,5 +1,7 @@
 import { R, setmu } from "../model/physics/constants"
 
+export const POOL_MU = 0.01
+
 export class TableGeometry {
   static tableX: number
   static tableY: number
@@ -30,7 +32,7 @@ export class TableGeometry {
       TableGeometry.tableX = R * 43 * sizeScale
       TableGeometry.tableY = R * 21 * sizeScale
       TableGeometry.hasPockets = true
-      setmu(0.007)
+      setmu(POOL_MU)
     }
     TableGeometry.X = TableGeometry.tableX + R
     TableGeometry.Y = TableGeometry.tableY + R
