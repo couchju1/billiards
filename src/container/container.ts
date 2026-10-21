@@ -51,6 +51,8 @@ import { share, shorten } from "../utils/shorten"
 import { RevealTracker } from "../utils/revealtracker"
 import { Rack } from "../utils/rack"
 import { TableGeometry } from "../view/tablegeometry"
+import { OFFLINE } from "../utils/offline"
+import { id } from "../utils/dom"
 
 type ActivePlayer = 0 | 1 | 2
 
@@ -197,6 +199,11 @@ export class Container {
   }
 
   init() {
+    if (OFFLINE) {
+      const lobbyPill = id("lobbyOverlay")
+      if (lobbyPill) lobbyPill.style.display = "none"
+      return
+    }
     if (location.port !== "8081" && this.lobbyIndicator) {
       this.lobbyIndicator.init()
     }

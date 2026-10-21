@@ -1,3 +1,5 @@
+import { OFFLINE } from "./offline"
+
 // Identity params name the person who recorded the game. They must not be
 // stored in a shared link, or the name shows up for every watcher.
 const IDENTITY_PARAMS = ["userName", "userId"]
@@ -13,7 +15,7 @@ export function shareableQuery(url: string): string {
 }
 
 export function shorten(url, action) {
-  if (typeof process === "object") {
+  if (OFFLINE || typeof process === "object") {
     return action(url)
   }
   const cleanUrl = shareableQuery(

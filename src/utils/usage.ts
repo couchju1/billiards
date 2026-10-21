@@ -1,4 +1,9 @@
+import { OFFLINE } from "./offline"
+
 export function logusage() {
+  if (OFFLINE) {
+    return
+  }
   if (
     globalThis.location.hostname === "localhost" ||
     globalThis.location.hostname === "127.0.0.1"

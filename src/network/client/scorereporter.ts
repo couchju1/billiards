@@ -2,6 +2,7 @@
 import { MatchResult } from "./matchresult"
 import { ARENA_BASE_URL } from "./constants"
 import { t } from "../../utils/i18n"
+import { OFFLINE } from "../../utils/offline"
 
 export class ScoreReporter {
   private readonly baseURL: string
@@ -13,6 +14,9 @@ export class ScoreReporter {
   }
 
   async submitMatchResult(result: MatchResult): Promise<void> {
+    if (OFFLINE) {
+      return
+    }
     if (this.shouldSkipUpload(result)) {
       console.log("Skipping match result upload for Alice/Bob")
       return
@@ -43,6 +47,9 @@ export class ScoreReporter {
     loserId?: string,
     berserk?: boolean
   ): Promise<void> {
+    if (OFFLINE) {
+      return
+    }
     const url = `${ARENA_BASE_URL}/api/arena/${encodeURIComponent(
       tournamentId
     )}/result`

@@ -1,5 +1,6 @@
 const path = require("node:path")
 const TerserPlugin = require("terser-webpack-plugin")
+const { DefinePlugin } = require("webpack")
 module.exports = {
   entry: {
     index: "./src/index.ts",
@@ -35,6 +36,11 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"],
   },
+  plugins: [
+    new DefinePlugin({
+      "process.env.OFFLINE": JSON.stringify(process.env.OFFLINE ?? ""),
+    }),
+  ],
   devServer: {
     static: {
       directory: path.join(__dirname, "dist"),

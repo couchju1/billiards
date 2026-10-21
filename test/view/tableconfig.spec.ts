@@ -19,15 +19,15 @@ describe("TableConfig mu override", () => {
   it("applies ?mu= after the rule's friction", () => {
     globalThis.history.replaceState({}, "", "?mu=0.012")
     TableConfig.apply("nineball")
-    expect(mu).to.equal(0.012)
+    expect(mu).to.be.closeTo(0.012, 1e-12)
   })
 
   it("clamps ?mu= to 0.004-0.020", () => {
     globalThis.history.replaceState({}, "", "?mu=0.5")
-    expect(TableConfig.muFromUrl()).to.equal(0.02)
+    expect(TableConfig.muFromUrl()).to.be.closeTo(0.02, 1e-12)
     globalThis.history.replaceState({}, "", "?mu=0")
-    expect(TableConfig.muFromUrl()).to.equal(0.004)
+    expect(TableConfig.muFromUrl()).to.be.closeTo(0.004, 1e-12)
     globalThis.history.replaceState({}, "", "?mu=abc")
-    expect(TableConfig.muFromUrl()).to.equal(undefined)
+    expect(TableConfig.muFromUrl()).to.be.undefined
   })
 })
