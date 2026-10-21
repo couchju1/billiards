@@ -104,9 +104,11 @@ describe("EightBall Rules", () => {
     Session.getInstance().p1type = 1 // Solids
     const ball9 = container.table.balls.find((b) => b.label === 9)!
     const outcome = [Outcome.collision(container.table.cueball, ball9, 1)]
+    expect(eightball.foulReason(outcome)).to.equal("Wrong group hit first")
     const nextController = eightball.update(outcome)
     expect(nextController).to.be.an.instanceof(PlaceBall)
-    expect(eightball.foulReason(outcome)).to.equal("Wrong group hit first")
+    // Playing alone, the foul passes the table over: now on stripes.
+    expect(Session.getInstance().p1type).to.equal(2)
   })
 
   it("should foul if no cushion hit and no pot", () => {

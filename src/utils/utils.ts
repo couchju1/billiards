@@ -109,6 +109,7 @@ export function randomEmojis(count: number): string[] {
 export const ruleTypeMap: Record<string, { emoji: string; title: string }> = {
   nineball: { emoji: "⑨", title: "nineball" },
   tenball: { emoji: "⑩", title: "tenball" },
+  freeplay: { emoji: "🎱", title: "practice" },
   eightball: { emoji: "🎱", title: "eightball" },
   snooker: { emoji: "🔴", title: "snooker" },
   threecushion: { emoji: "③", title: "threecushion" },

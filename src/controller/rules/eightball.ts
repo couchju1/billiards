@@ -231,12 +231,13 @@ export class EightBall implements Rules {
   }
 
   private handleFoul(outcome: Outcome[], reason: string): Controller {
+    const switched = this.switchGroupsSolo()
     this.container.notify({
       type: "Foul",
       // Source strings: this banner is broadcast to the opponent too.
       title: "FOUL",
       subtext: reason,
-      extra: "Ball in hand",
+      extra: switched ? `Ball in hand, now ${switched}` : "Ball in hand",
     })
     this.startTurn()
     const pots = Outcome.pots(outcome)
@@ -334,8 +335,32 @@ export class EightBall implements Rules {
     return this.handleFoul([], "8-ball pocketed early")
   }
 
+  /**
+   * Playing alone, a miss or a foul passes the table to an imaginary
+   * opponent: the player carries on as the other group, as they would have
+   * to in a real game. Returns the new group's name, or undefined when
+   * nothing changed (two players, or groups not yet decided).
+   */
+  private switchGroupsSolo(): string | undefined {
+    const session = Session.getInstance()
+    if (!this.container.isSinglePlayer || session.p1type === 0) {
+      return undefined
+    }
+    session.p1type = flipType(session.p1type)
+    const { p1, p2 } = session.orderedScoresForHud()
+    this.container.updateScoreHud(p1, p2, 0)
+    return session.p1type === 1 ? "solids" : "stripes"
+  }
+
   private handleMiss(): Controller {
     const table = this.container.table
+    const switched = this.switchGroupsSolo()
+    if (switched) {
+      this.container.notifyLocal(
+        { type: "Info", title: "Miss", subtext: `Now shooting ${switched}` },
+        2000
+      )
+    }
     this.container.sendEvent(new StartAimEvent())
     if (this.container.isSinglePlayer) {
       this.container.sendEvent(new WatchEvent(table.serialise()))
